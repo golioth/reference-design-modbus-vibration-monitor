@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2022-2023 Golioth, Inc.
+ * Copyright (c) 2022-2024 Golioth, Inc.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(golioth_modbus_vibration_monitor, LOG_LEVEL_DBG);
 
 #include <modem/lte_lc.h>
 #include <net/golioth/system_client.h>
@@ -36,8 +36,9 @@ K_SEM_DEFINE(connected, 0, 1);
 K_SEM_DEFINE(dfu_status_unreported, 1, 1);
 
 static k_tid_t _system_thread = 0;
-
+#if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 static const struct gpio_dt_spec golioth_led = GPIO_DT_SPEC_GET(DT_ALIAS(golioth_led), gpios);
+#endif /* DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 static const struct gpio_dt_spec user_btn = GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios);
 static struct gpio_callback button_cb_data;
 
@@ -162,8 +163,10 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t
 void golioth_connection_led_set(uint8_t state)
 {
 	uint8_t pin_state = state ? 1 : 0;
+#if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 	/* Turn on Golioth logo LED once connected */
 	gpio_pin_set_dt(&golioth_led, pin_state);
+#endif /* DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 	/* Change the state of the Golioth LED on Ostentus */
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_golioth_set(pin_state);));
 }
@@ -172,7 +175,7 @@ int main(void)
 {
 	int err;
 
-	LOG_DBG("Start Reference Design Template sample");
+	LOG_DBG("Started Modbus Vibration Monitor app");
 
 	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION);
 	IF_ENABLED(CONFIG_MODEM_INFO, (log_modem_firmware_version();));
@@ -189,11 +192,13 @@ int main(void)
 	/* Get system thread id so loop delay change event can wake main */
 	_system_thread = k_current_get();
 
+#if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 	/* Initialize Golioth logo LED */
 	err = gpio_pin_configure_dt(&golioth_led, GPIO_OUTPUT_INACTIVE);
 	if (err) {
 		LOG_ERR("Unable to configure LED for Golioth Logo");
 	}
+#endif /* DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 
 	/* Initialize app state */
 	app_state_init(client);
@@ -232,8 +237,10 @@ int main(void)
 		/* Block until connected to Golioth */
 		k_sem_take(&connected, K_FOREVER);
 
+#if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 		/* Turn on Golioth logo LED once connected */
 		gpio_pin_set_dt(&golioth_led, 1);
+#endif /* DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 	}
 
 	/* Set up user button */
@@ -260,8 +267,28 @@ int main(void)
 		 *  - use the enum in app_work.h to add new keys
 		 *  - values are updated using these keys (see app_work.c)
 		 */
-		slide_add(UP_COUNTER, LABEL_UP_COUNTER, strlen(LABEL_UP_COUNTER));
-		slide_add(DN_COUNTER, LABEL_DN_COUNTER, strlen(LABEL_DN_COUNTER));
+		slide_add(TEMP_F, LABEL_TEMP, strlen(LABEL_TEMP));
+		slide_add(TEMP_C, LABEL_TEMP, strlen(LABEL_TEMP));
+		slide_add(Z_VEL_RMS_IN, LABEL_Z_VEL_RMS, strlen(LABEL_Z_VEL_RMS));
+		slide_add(Z_VEL_RMS_MM, LABEL_Z_VEL_RMS, strlen(LABEL_Z_VEL_RMS));
+		slide_add(X_VEL_RMS_IN, LABEL_X_VEL_RMS, strlen(LABEL_X_VEL_RMS));
+		slide_add(X_VEL_RMS_MM, LABEL_X_VEL_RMS, strlen(LABEL_X_VEL_RMS));
+		slide_add(Z_ACC_PEAK, LABEL_Z_ACC_PEAK, strlen(LABEL_Z_ACC_PEAK));
+		slide_add(X_ACC_PEAK, LABEL_X_ACC_PEAK, strlen(LABEL_X_ACC_PEAK));
+		slide_add(Z_VEL_FREQ, LABEL_Z_VEL_FREQ, strlen(LABEL_Z_VEL_FREQ));
+		slide_add(X_VEL_FREQ, LABEL_X_VEL_FREQ, strlen(LABEL_X_VEL_FREQ));
+		slide_add(Z_ACC_RMS, LABEL_Z_ACC_RMS, strlen(LABEL_Z_ACC_RMS));
+		slide_add(X_ACC_RMS, LABEL_X_ACC_RMS, strlen(LABEL_X_ACC_RMS));
+		slide_add(Z_ACC_KURT, LABEL_Z_ACC_KURT, strlen(LABEL_Z_ACC_KURT));
+		slide_add(X_ACC_KURT, LABEL_X_ACC_KURT, strlen(LABEL_X_ACC_KURT));
+		slide_add(Z_ACC_CF, LABEL_Z_ACC_CF, strlen(LABEL_Z_ACC_CF));
+		slide_add(X_ACC_CF, LABEL_X_ACC_CF, strlen(LABEL_X_ACC_CF));
+		slide_add(Z_VEL_PEAK_IN, LABEL_Z_VEL_PEAK, strlen(LABEL_Z_VEL_PEAK));
+		slide_add(Z_VEL_PEAK_MM, LABEL_Z_VEL_PEAK, strlen(LABEL_Z_VEL_PEAK));
+		slide_add(X_VEL_PEAK_IN, LABEL_X_VEL_PEAK, strlen(LABEL_X_VEL_PEAK));
+		slide_add(X_VEL_PEAK_MM, LABEL_X_VEL_PEAK, strlen(LABEL_X_VEL_PEAK));
+		slide_add(Z_ACC_RMS_HF, LABEL_Z_ACC_RMS_HF, strlen(LABEL_Z_ACC_RMS_HF));
+		slide_add(X_ACC_RMS_HF, LABEL_X_ACC_RMS_HF, strlen(LABEL_X_ACC_RMS_HF));
 		IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
 			slide_add(BATTERY_V, LABEL_BATTERY, strlen(LABEL_BATTERY));
 			slide_add(BATTERY_LVL, LABEL_BATTERY, strlen(LABEL_BATTERY));

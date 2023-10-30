@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Golioth, Inc.
+# Copyright (c) 2022-2024 Golioth, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
 manifest:
@@ -32,7 +32,7 @@ manifest:
 
     - name: golioth-zephyr-boards
       path: deps/modules/lib/golioth-boards
-      revision: v1.0.1
+      revision: 045a9c391fcc25dd6d16883ed9b87b4e14489e61
       url: https://github.com/golioth/golioth-zephyr-boards
 
     - name: libostentus

@@ -1,0 +1,20 @@
+/*
+ * Copyright (c) 2023 Golioth, Inc.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	zephyr,user {
+		rs485-8-click-en-gpios = <&mikrobus_header_1 1 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+&mikrobus_serial {
+	status = "okay";
+
+	modbus0 {
+		compatible = "zephyr,modbus-serial";
+		status = "okay";
+	};
+};

@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 sample:
-  description: Golioth Reference Design Template
-  name: rd_template
+  description: Golioth Reference Design - Modbus Vibration Monitor
+  name: modbus_vibration_monitor
 common:
   harness: net
   platform_allow: >

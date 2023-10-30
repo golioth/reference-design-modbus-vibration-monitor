@@ -32,7 +32,7 @@ manifest:
 
     - name: golioth-zephyr-boards
       path: deps/modules/lib/golioth-boards
-      revision: v1.0.1
+      revision: 560a1959b67e45a8229ed39ece3ee0f237a34c22
       url: https://github.com/golioth/golioth-zephyr-boards
 
     - name: libostentus

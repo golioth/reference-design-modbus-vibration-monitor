@@ -182,8 +182,13 @@ int main(void)
 	IF_ENABLED(CONFIG_MODEM_INFO, (log_modem_firmware_version();));
 
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
+		char ostentus_version_buf[32];
+
 		/* Clear Ostentus memory */
 		clear_memory();
+		/* Log Ostentus version */
+		ostentus_version_get(ostentus_version_buf, sizeof(ostentus_version_buf));
+		LOG_INF("Ostentus firmware version: %s", ostentus_version_buf);
 		/* Update Ostentus LEDS using bitmask (Power On and Battery) */
 		led_bitmask(LED_POW | LED_BAT);
 		/* Show Golioth Logo on Ostentus ePaper screen */

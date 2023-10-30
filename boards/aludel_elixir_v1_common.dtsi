@@ -4,10 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "nrf_dk_common.dtsi"
+#include "app_common.dtsi"
 
-/ {
-	aliases {
-		golioth-led = &led2;
-	};
+&quiic_i2c {
+	status = "okay";
 };

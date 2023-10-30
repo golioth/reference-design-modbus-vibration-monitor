@@ -1,0 +1,22 @@
+/*
+ * Copyright (c) 2023 Golioth, Inc.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "aludel_elixir_v1_common.dtsi"
+
+/* RS-485 8 Click boards have their EN signal connected to the RST signal on the
+ * mikroBUS headers. However, Elixir v1 Rev A boards do not have SW (GPIO)
+ * control of the RST pins on the mikroBUS headers. To ensure the EN pin is
+ * driven HIGH (enabled) for this app, a 10 KΩ resistor must be soldered onto
+ * the Click board between the EN pin and the 3.3V pin.
+ *
+ * Since the EN pin is not used for this board rev, we need to remove delete the
+ * unused node from the shared app_common.dtsi overlay used by all other boards.
+ */
+/ {
+	zephyr,user {
+		/delete-property/ rs485-8-click-en-gpios;
+	};
+};

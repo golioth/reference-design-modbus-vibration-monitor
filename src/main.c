@@ -5,12 +5,14 @@
  */
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(golioth_modbus_co2_monitor, LOG_LEVEL_DBG);
 
 #include <modem/lte_lc.h>
 #include <net/golioth/system_client.h>
 #include <samples/common/net_connect.h>
 #include <zephyr/net/coap.h>
+#include <zephyr/drivers/gpio.h>
+
 #include "app_rpc.h"
 #include "app_settings.h"
 #include "app_state.h"
@@ -20,11 +22,10 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #ifdef CONFIG_LIB_OSTENTUS
 #include <libostentus.h>
 #endif
+
 #ifdef CONFIG_ALUDEL_BATTERY_MONITOR
 #include "battery_monitor/battery.h"
 #endif
-
-#include <zephyr/drivers/gpio.h>
 
 #ifdef CONFIG_MODEM_INFO
 #include <modem/modem_info.h>
@@ -36,8 +37,9 @@ K_SEM_DEFINE(connected, 0, 1);
 K_SEM_DEFINE(dfu_status_unreported, 1, 1);
 
 static k_tid_t _system_thread = 0;
-
+#if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 static const struct gpio_dt_spec golioth_led = GPIO_DT_SPEC_GET(DT_ALIAS(golioth_led), gpios);
+#endif /* DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 static const struct gpio_dt_spec user_btn = GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios);
 static struct gpio_callback button_cb_data;
 
@@ -162,8 +164,10 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t
 void golioth_connection_led_set(uint8_t state)
 {
 	uint8_t pin_state = state ? 1 : 0;
+#if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 	/* Turn on Golioth logo LED once connected */
 	gpio_pin_set_dt(&golioth_led, pin_state);
+#endif /* DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 	/* Change the state of the Golioth LED on Ostentus */
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_golioth_set(pin_state);));
 }
@@ -172,7 +176,7 @@ int main(void)
 {
 	int err;
 
-	LOG_DBG("Start Reference Design Template sample");
+	LOG_DBG("Started Modbus CO₂ Monitor app");
 
 	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION);
 	IF_ENABLED(CONFIG_MODEM_INFO, (log_modem_firmware_version();));
@@ -189,11 +193,13 @@ int main(void)
 	/* Get system thread id so loop delay change event can wake main */
 	_system_thread = k_current_get();
 
+#if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 	/* Initialize Golioth logo LED */
 	err = gpio_pin_configure_dt(&golioth_led, GPIO_OUTPUT_INACTIVE);
 	if (err) {
 		LOG_ERR("Unable to configure LED for Golioth Logo");
 	}
+#endif /* DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 
 	/* Initialize app state */
 	app_state_init(client);
@@ -232,8 +238,10 @@ int main(void)
 		/* Block until connected to Golioth */
 		k_sem_take(&connected, K_FOREVER);
 
+#if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 		/* Turn on Golioth logo LED once connected */
 		gpio_pin_set_dt(&golioth_led, 1);
+#endif /* DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 	}
 
 	/* Set up user button */
@@ -254,14 +262,15 @@ int main(void)
 	gpio_init_callback(&button_cb_data, button_pressed, BIT(user_btn.pin));
 	gpio_add_callback(user_btn.port, &button_cb_data);
 
-	IF_ENABLED(CONFIG_LIB_OSTENTUS,(
+	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
 		/* Set up a slideshow on Ostentus
 		 *  - add up to 256 slides
 		 *  - use the enum in app_work.h to add new keys
 		 *  - values are updated using these keys (see app_work.c)
 		 */
-		slide_add(UP_COUNTER, LABEL_UP_COUNTER, strlen(LABEL_UP_COUNTER));
-		slide_add(DN_COUNTER, LABEL_DN_COUNTER, strlen(LABEL_DN_COUNTER));
+		slide_add(CO2, LABEL_CO2, strlen(LABEL_CO2));
+		slide_add(TEMPERATURE, LABEL_TEMPERATURE, strlen(LABEL_TEMPERATURE));
+		slide_add(HUMIDITY, LABEL_HUMIDITY, strlen(LABEL_HUMIDITY));
 		IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
 			slide_add(BATTERY_V, LABEL_BATTERY, strlen(LABEL_BATTERY));
 			slide_add(BATTERY_LVL, LABEL_BATTERY, strlen(LABEL_BATTERY));

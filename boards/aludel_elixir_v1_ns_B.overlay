@@ -4,10 +4,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "nrf_dk_common.dtsi"
-
-/ {
-	aliases {
-		golioth-led = &led2;
-	};
-};
+#include "aludel_elixir_v1_common.dtsi"

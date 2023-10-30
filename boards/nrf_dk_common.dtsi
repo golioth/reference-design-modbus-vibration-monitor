@@ -1,0 +1,14 @@
+/*
+ * Copyright (c) 2024 Golioth, Inc.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "app_common.dtsi"
+
+/ {
+	aliases {
+		/* click-i2c alias is currently needed by libostentus */
+		click-i2c = &mikrobus_i2c;
+	};
+};

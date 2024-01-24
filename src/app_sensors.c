@@ -18,7 +18,7 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 #include "qm30vt2.h"
 
 #ifdef CONFIG_LIB_OSTENTUS
-#include <libostentus.h>
+#include "ostentus.h"
 #endif
 
 #ifdef CONFIG_ALUDEL_BATTERY_MONITOR
@@ -146,9 +146,9 @@ void app_sensors_read_and_stream(void)
 	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
 		read_and_report_battery(client);
 		IF_ENABLED(CONFIG_LIB_OSTENTUS, (
-			slide_set(BATTERY_V, get_batt_v_str(), strlen(get_batt_v_str()));
-			slide_set(BATTERY_LVL, get_batt_lvl_str(),
-					     strlen(get_batt_lvl_str()));
+			ostentus_slide_set(BATTERY_V, get_batt_v_str(), strlen(get_batt_v_str()));
+			ostentus_slide_set(BATTERY_LVL, get_batt_lvl_str(),
+					   strlen(get_batt_lvl_str()));
 		));
 	));
 
@@ -219,91 +219,91 @@ void app_sensors_read_and_stream(void)
 		 */
 		snprintk(json_buf, sizeof(json_buf), "%.2f F",
 			 sensor_value_to_double(&meas.temp_f));
-		slide_set(TEMP_F, json_buf, strlen(json_buf));
+		ostentus_slide_set(TEMP_F, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.2f C",
 			 sensor_value_to_double(&meas.temp_c));
-		slide_set(TEMP_C, json_buf, strlen(json_buf));
+		ostentus_slide_set(TEMP_C, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.4f in/sec",
 			 sensor_value_to_double(&meas.z_vel_rms_in));
-		slide_set(Z_VEL_RMS_IN, json_buf, strlen(json_buf));
+		ostentus_slide_set(Z_VEL_RMS_IN, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f mm/sec",
 			 sensor_value_to_double(&meas.z_vel_rms_mm));
-		slide_set(Z_VEL_RMS_MM, json_buf, strlen(json_buf));
+		ostentus_slide_set(Z_VEL_RMS_MM, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.4f in/sec",
 			 sensor_value_to_double(&meas.x_vel_rms_in));
-		slide_set(X_VEL_RMS_IN, json_buf, strlen(json_buf));
+		ostentus_slide_set(X_VEL_RMS_IN, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f mm/sec",
 			 sensor_value_to_double(&meas.x_vel_rms_mm));
-		slide_set(X_VEL_RMS_MM, json_buf, strlen(json_buf));
+		ostentus_slide_set(X_VEL_RMS_MM, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f G",
 			 sensor_value_to_double(&meas.z_acc_peak));
-		slide_set(Z_ACC_PEAK, json_buf, strlen(json_buf));
+		ostentus_slide_set(Z_ACC_PEAK, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f G",
 			 sensor_value_to_double(&meas.x_acc_peak));
-		slide_set(X_ACC_PEAK, json_buf, strlen(json_buf));
+		ostentus_slide_set(X_ACC_PEAK, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.1f Hz",
 			 sensor_value_to_double(&meas.z_vel_peak_freq));
-		slide_set(Z_VEL_FREQ, json_buf, strlen(json_buf));
+		ostentus_slide_set(Z_VEL_FREQ, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.1f Hz",
 			 sensor_value_to_double(&meas.x_vel_peak_freq));
-		slide_set(X_VEL_FREQ, json_buf, strlen(json_buf));
+		ostentus_slide_set(X_VEL_FREQ, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f G",
 			 sensor_value_to_double(&meas.z_acc_rms));
-		slide_set(Z_ACC_RMS, json_buf, strlen(json_buf));
+		ostentus_slide_set(Z_ACC_RMS, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f G",
 			 sensor_value_to_double(&meas.x_acc_rms));
-		slide_set(X_ACC_RMS, json_buf, strlen(json_buf));
+		ostentus_slide_set(X_ACC_RMS, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f",
 			 sensor_value_to_double(&meas.z_acc_kurt));
-		slide_set(Z_ACC_KURT, json_buf, strlen(json_buf));
+		ostentus_slide_set(Z_ACC_KURT, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f",
 			 sensor_value_to_double(&meas.x_acc_kurt));
-		slide_set(X_ACC_KURT, json_buf, strlen(json_buf));
+		ostentus_slide_set(X_ACC_KURT, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f",
 			 sensor_value_to_double(&meas.z_acc_cf));
-		slide_set(Z_ACC_CF, json_buf, strlen(json_buf));
+		ostentus_slide_set(Z_ACC_CF, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f",
 			 sensor_value_to_double(&meas.x_acc_cf));
-		slide_set(X_ACC_CF, json_buf, strlen(json_buf));
+		ostentus_slide_set(X_ACC_CF, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.4f in/sec",
 			 sensor_value_to_double(&meas.z_vel_peak_in));
-		slide_set(Z_VEL_PEAK_IN, json_buf, strlen(json_buf));
+		ostentus_slide_set(Z_VEL_PEAK_IN, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f mm/sec",
 			 sensor_value_to_double(&meas.z_vel_peak_mm));
-		slide_set(Z_VEL_PEAK_MM, json_buf, strlen(json_buf));
+		ostentus_slide_set(Z_VEL_PEAK_MM, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.4f in/sec",
 			 sensor_value_to_double(&meas.x_vel_peak_in));
-		slide_set(X_VEL_PEAK_IN, json_buf, strlen(json_buf));
+		ostentus_slide_set(X_VEL_PEAK_IN, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f mm/sec",
 			 sensor_value_to_double(&meas.x_vel_peak_mm));
-		slide_set(X_VEL_PEAK_MM, json_buf, strlen(json_buf));
+		ostentus_slide_set(X_VEL_PEAK_MM, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f G",
 			 sensor_value_to_double(&meas.z_acc_rms_hf));
-		slide_set(Z_ACC_RMS_HF, json_buf, strlen(json_buf));
+		ostentus_slide_set(Z_ACC_RMS_HF, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f G",
 			 sensor_value_to_double(&meas.x_acc_rms_hf));
-		slide_set(X_ACC_RMS_HF, json_buf, strlen(json_buf));
+		ostentus_slide_set(X_ACC_RMS_HF, json_buf, strlen(json_buf));
 	));
 }
 

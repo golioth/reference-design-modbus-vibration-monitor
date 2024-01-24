@@ -22,7 +22,7 @@ LOG_MODULE_REGISTER(golioth_modbus_vibration_monitor, LOG_LEVEL_DBG);
 #include <modem/lte_lc.h>
 #endif
 #ifdef CONFIG_LIB_OSTENTUS
-#include <libostentus.h>
+#include "ostentus.h"
 #endif
 #ifdef CONFIG_ALUDEL_BATTERY_MONITOR
 #include "battery_monitor/battery.h"
@@ -109,7 +109,7 @@ static void lte_handler(const struct lte_lc_evt *const evt)
 		    (evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_ROAMING)) {
 
 			/* Change the state of the Internet LED on Ostentus */
-			IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_internet_set(1);));
+			IF_ENABLED(CONFIG_LIB_OSTENTUS, (ostentus_led_internet_set(1);));
 
 			if (!client) {
 				/* Create and start a Golioth Client */
@@ -157,7 +157,7 @@ void golioth_connection_led_set(uint8_t state)
 	gpio_pin_set_dt(&golioth_led, pin_state);
 #endif /* #if DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 	/* Change the state of the Golioth LED on Ostentus */
-	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_golioth_set(pin_state);));
+	IF_ENABLED(CONFIG_LIB_OSTENTUS, (ostentus_led_golioth_set(pin_state);));
 }
 
 int main(void)
@@ -172,14 +172,7 @@ int main(void)
 	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION);
 	IF_ENABLED(CONFIG_MODEM_INFO, (log_modem_firmware_version();));
 
-	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
-		/* Clear Ostentus memory */
-		clear_memory();
-		/* Update Ostentus LEDS using bitmask (Power On and Battery) */
-		led_bitmask(LED_POW | LED_BAT);
-		/* Show Golioth Logo on Ostentus ePaper screen */
-		show_splash();
-	));
+	IF_ENABLED(CONFIG_LIB_OSTENTUS, (ostentus_init();));
 
 	/* Get system thread id so loop delay change event can wake main */
 	_system_thread = k_current_get();
@@ -242,43 +235,43 @@ int main(void)
 		 *  - use the enum in app_sensors.h to add new keys
 		 *  - values are updated using these keys (see app_sensors.c)
 		 */
-		slide_add(TEMP_F, LABEL_TEMP, strlen(LABEL_TEMP));
-		slide_add(TEMP_C, LABEL_TEMP, strlen(LABEL_TEMP));
-		slide_add(Z_VEL_RMS_IN, LABEL_Z_VEL_RMS, strlen(LABEL_Z_VEL_RMS));
-		slide_add(Z_VEL_RMS_MM, LABEL_Z_VEL_RMS, strlen(LABEL_Z_VEL_RMS));
-		slide_add(X_VEL_RMS_IN, LABEL_X_VEL_RMS, strlen(LABEL_X_VEL_RMS));
-		slide_add(X_VEL_RMS_MM, LABEL_X_VEL_RMS, strlen(LABEL_X_VEL_RMS));
-		slide_add(Z_ACC_PEAK, LABEL_Z_ACC_PEAK, strlen(LABEL_Z_ACC_PEAK));
-		slide_add(X_ACC_PEAK, LABEL_X_ACC_PEAK, strlen(LABEL_X_ACC_PEAK));
-		slide_add(Z_VEL_FREQ, LABEL_Z_VEL_FREQ, strlen(LABEL_Z_VEL_FREQ));
-		slide_add(X_VEL_FREQ, LABEL_X_VEL_FREQ, strlen(LABEL_X_VEL_FREQ));
-		slide_add(Z_ACC_RMS, LABEL_Z_ACC_RMS, strlen(LABEL_Z_ACC_RMS));
-		slide_add(X_ACC_RMS, LABEL_X_ACC_RMS, strlen(LABEL_X_ACC_RMS));
-		slide_add(Z_ACC_KURT, LABEL_Z_ACC_KURT, strlen(LABEL_Z_ACC_KURT));
-		slide_add(X_ACC_KURT, LABEL_X_ACC_KURT, strlen(LABEL_X_ACC_KURT));
-		slide_add(Z_ACC_CF, LABEL_Z_ACC_CF, strlen(LABEL_Z_ACC_CF));
-		slide_add(X_ACC_CF, LABEL_X_ACC_CF, strlen(LABEL_X_ACC_CF));
-		slide_add(Z_VEL_PEAK_IN, LABEL_Z_VEL_PEAK, strlen(LABEL_Z_VEL_PEAK));
-		slide_add(Z_VEL_PEAK_MM, LABEL_Z_VEL_PEAK, strlen(LABEL_Z_VEL_PEAK));
-		slide_add(X_VEL_PEAK_IN, LABEL_X_VEL_PEAK, strlen(LABEL_X_VEL_PEAK));
-		slide_add(X_VEL_PEAK_MM, LABEL_X_VEL_PEAK, strlen(LABEL_X_VEL_PEAK));
-		slide_add(Z_ACC_RMS_HF, LABEL_Z_ACC_RMS_HF, strlen(LABEL_Z_ACC_RMS_HF));
-		slide_add(X_ACC_RMS_HF, LABEL_X_ACC_RMS_HF, strlen(LABEL_X_ACC_RMS_HF));
+		ostentus_slide_add(TEMP_F, LABEL_TEMP, strlen(LABEL_TEMP));
+		ostentus_slide_add(TEMP_C, LABEL_TEMP, strlen(LABEL_TEMP));
+		ostentus_slide_add(Z_VEL_RMS_IN, LABEL_Z_VEL_RMS, strlen(LABEL_Z_VEL_RMS));
+		ostentus_slide_add(Z_VEL_RMS_MM, LABEL_Z_VEL_RMS, strlen(LABEL_Z_VEL_RMS));
+		ostentus_slide_add(X_VEL_RMS_IN, LABEL_X_VEL_RMS, strlen(LABEL_X_VEL_RMS));
+		ostentus_slide_add(X_VEL_RMS_MM, LABEL_X_VEL_RMS, strlen(LABEL_X_VEL_RMS));
+		ostentus_slide_add(Z_ACC_PEAK, LABEL_Z_ACC_PEAK, strlen(LABEL_Z_ACC_PEAK));
+		ostentus_slide_add(X_ACC_PEAK, LABEL_X_ACC_PEAK, strlen(LABEL_X_ACC_PEAK));
+		ostentus_slide_add(Z_VEL_FREQ, LABEL_Z_VEL_FREQ, strlen(LABEL_Z_VEL_FREQ));
+		ostentus_slide_add(X_VEL_FREQ, LABEL_X_VEL_FREQ, strlen(LABEL_X_VEL_FREQ));
+		ostentus_slide_add(Z_ACC_RMS, LABEL_Z_ACC_RMS, strlen(LABEL_Z_ACC_RMS));
+		ostentus_slide_add(X_ACC_RMS, LABEL_X_ACC_RMS, strlen(LABEL_X_ACC_RMS));
+		ostentus_slide_add(Z_ACC_KURT, LABEL_Z_ACC_KURT, strlen(LABEL_Z_ACC_KURT));
+		ostentus_slide_add(X_ACC_KURT, LABEL_X_ACC_KURT, strlen(LABEL_X_ACC_KURT));
+		ostentus_slide_add(Z_ACC_CF, LABEL_Z_ACC_CF, strlen(LABEL_Z_ACC_CF));
+		ostentus_slide_add(X_ACC_CF, LABEL_X_ACC_CF, strlen(LABEL_X_ACC_CF));
+		ostentus_slide_add(Z_VEL_PEAK_IN, LABEL_Z_VEL_PEAK, strlen(LABEL_Z_VEL_PEAK));
+		ostentus_slide_add(Z_VEL_PEAK_MM, LABEL_Z_VEL_PEAK, strlen(LABEL_Z_VEL_PEAK));
+		ostentus_slide_add(X_VEL_PEAK_IN, LABEL_X_VEL_PEAK, strlen(LABEL_X_VEL_PEAK));
+		ostentus_slide_add(X_VEL_PEAK_MM, LABEL_X_VEL_PEAK, strlen(LABEL_X_VEL_PEAK));
+		ostentus_slide_add(Z_ACC_RMS_HF, LABEL_Z_ACC_RMS_HF, strlen(LABEL_Z_ACC_RMS_HF));
+		ostentus_slide_add(X_ACC_RMS_HF, LABEL_X_ACC_RMS_HF, strlen(LABEL_X_ACC_RMS_HF));
 		IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
-			slide_add(BATTERY_V, LABEL_BATTERY, strlen(LABEL_BATTERY));
-			slide_add(BATTERY_LVL, LABEL_BATTERY, strlen(LABEL_BATTERY));
+			ostentus_slide_add(BATTERY_V, LABEL_BATTERY, strlen(LABEL_BATTERY));
+			ostentus_slide_add(BATTERY_LVL, LABEL_BATTERY, strlen(LABEL_BATTERY));
 		));
-		slide_add(FIRMWARE, LABEL_FIRMWARE, strlen(LABEL_FIRMWARE));
+		ostentus_slide_add(FIRMWARE, LABEL_FIRMWARE, strlen(LABEL_FIRMWARE));
 
 		/* Set the title ofthe Ostentus summary slide (optional) */
-		summary_title(SUMMARY_TITLE, strlen(SUMMARY_TITLE));
+		ostentus_summary_title(SUMMARY_TITLE, strlen(SUMMARY_TITLE));
 
 		/* Update the Firmware slide with the firmware version */
-		slide_set(FIRMWARE, CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION,
-			  strlen(CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION));
+		ostentus_slide_set(FIRMWARE, CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION,
+				   strlen(CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION));
 
 		/* Start Ostentus slideshow with 30 second delay between slides */
-		slideshow(30000);
+		ostentus_slideshow(30000);
 	));
 
 	while (true) {

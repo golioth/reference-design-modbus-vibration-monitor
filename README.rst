@@ -1,93 +1,162 @@
 ..
-   Copyright (c) 2022-2023 Golioth, Inc.
+   Copyright (c) 2024 Golioth, Inc.
    SPDX-License-Identifier: Apache-2.0
 
-Golioth Reference Design Template
-#################################
+Golioth Reference Design - Modbus Vibration Monitor
+###################################################
 
-Overview
-********
+This repository contains the firmware source code and `pre-built release
+firmware images <releases_>`_ for the Golioth Modbus Vibration Monitor reference
+design.
 
-Use this repo as a template when beginning work on a new Golioth Reference
-Design. It is set up as a standalone repository, with all Golioth features
-implemented in basic form. Search the project for the word ``template`` and
-``rd_template`` and update those occurrences with your reference design's name.
+The full project details are available on the `Modbus Vibration Monitor Project
+Page`_, including follow-along guides for building an IoT Modbus Vibration
+Monitor yourself using widely available off-the-shelf development boards.
 
-Local set up
-************
+We call this **Follow-Along Hardware**, and we think it's one of the quickest
+and easiest ways to get started building an IoT proof-of-concept with Golioth.
+In the follow-along guides, you will learn how to assemble the hardware, flash a
+pre-built firmware image onto the device, and connect to the Golioth cloud in
+minutes.
 
-Do not clone this repo using git. Zephyr's ``west`` meta tool should be used to
-set up your local workspace.
+Once you have completed a follow-along guide for one of our supported hardware
+platforms, the instructions below will walk you through how to build and
+configure the firmware yourself.
 
-Install the Python virtual environment (recommended)
-====================================================
+Supported Hardware
+******************
 
-.. code-block:: shell
+This firmware can be built for a variety of supported hardware platforms.
 
-   cd ~
-   mkdir golioth-reference-design-template
-   python -m venv golioth-reference-design-template/.venv
-   source golioth-reference-design-template/.venv/bin/activate
-   pip install wheel west
+.. pull-quote::
+   [!IMPORTANT]
 
-Use ``west`` to initialize and install
-======================================
+   In Zephyr, each of these different hardware variants is given a unique
+   "board" identifier, which is used by the build system to generate firmware
+   for that variant.
 
-.. code-block:: shell
+   When building firmware using the instructions below, make sure to use the
+   correct Zephyr board identifier that corresponds to your follow-along
+   hardware platform.
 
-   cd ~/golioth-reference-design-template
-   west init -m git@github.com:golioth/reference-design-template.git .
-   west update
-   west zephyr-export
-   pip install -r deps/zephyr/scripts/requirements.txt
+.. list-table:: **Follow-Along Hardware**
+   :header-rows: 1
 
-Building the application
-************************
+   * - Hardware
+     - Zephyr Board
+     - Follow-Along Guide
 
-Build Zephyr sample application for Golioth Aludel-Mini
-(``aludel_mini_v1_sparkfun9160_ns``) from the top level of your project. After a
-successful build you will see a new ``build`` directory. Note that any changes
-(and git commits) to the project itself will be inside the ``app`` folder. The
-``build`` and ``deps`` directories being one level higher prevents the repo from
-cataloging all of the changes to the dependencies and the build (so no
-``.gitignore`` is needed)
+   * - .. image:: images/modbus_vibration_monitor_fah_nrf9160_dk.jpg
+          :width: 240
+     - ``nrf9160dk_nrf9160_ns``
+     - `nRF9160 DK Follow-Along Guide`_
 
-During building, replace ``<your.semantic.version>`` to utilize the DFU
-functionality on this Reference Design.
+.. list-table:: **Custom Golioth Hardware**
+   :header-rows: 1
 
-.. code-block:: text
+   * - Hardware
+     - Zephyr Board
+     - Project Page
+   * - .. image:: images/modbus_vibration_monitor_aludel_mini_v1_photo_top.jpg
+          :width: 240
+     - ``aludel_mini_v1_sparkfun9160_ns``
+     - `Modbus Vibration Monitor Project Page`_
+   * - .. image:: images/modbus_vibration_monitor_aludel_mini_v1_photo_top.jpg
+          :width: 240
+     - ``aludel_elixir_v1_ns``
+     -
 
-   $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"<your.semantic.version>\"
-   $ (.venv) west flash
+Firmware Overview
+*****************
 
-Configure PSK-ID and PSK using the device shell based on your Golioth
-credentials and reboot:
+This reference design firmware demonstrates how to interface with a `Banner Sure
+Cross® QM30VT2`_ sensor via the Modbus protocol and send vibration and
+temperature measurements to the cloud using the Golioth IoT platform.
 
-.. code-block:: text
+Sensor values are uploaded to the LightDB stream database in the Golioth
+Cloud. The sensor sampling frequency and other sensor parameters are remotely
+configurable via the Golioth Settings service.
 
-   uart:~$ settings set golioth/psk-id <my-psk-id@my-project>
-   uart:~$ settings set golioth/psk <my-psk>
-   uart:~$ kernel reboot cold
+Supported Golioth Zephyr SDK Features
+=====================================
 
-Golioth Features
-****************
+This firmware implements the following features from the Golioth Zephyr SDK:
 
-This app currently implements Over-the-Air (OTA) firmware updates, Settings
-Service, Logging, RPC, and both LightDB State and LightDB Stream data.
+- `Device Settings Service <https://docs.golioth.io/firmware/zephyr-device-sdk/device-settings-service>`_
+- `LightDB State Client <https://docs.golioth.io/firmware/zephyr-device-sdk/light-db/>`_
+- `LightDB Stream Client <https://docs.golioth.io/firmware/zephyr-device-sdk/light-db-stream/>`_
+- `Logging Client <https://docs.golioth.io/firmware/zephyr-device-sdk/logging/>`_
+- `Over-the-Air (OTA) Firmware Upgrade <https://docs.golioth.io/firmware/device-sdk/firmware-upgrade>`_
+- `Remote Procedure Call (RPC) <https://docs.golioth.io/firmware/zephyr-device-sdk/remote-procedure-call>`_
 
-Settings Service
-================
+Device Settings Service
+-----------------------
 
-The following settings should be set in the Device Settings menu of the
-`Golioth Console`_.
+The following settings can be set in the Device Settings menu of the `Golioth
+Console`_.
 
 ``LOOP_DELAY_S``
    Adjusts the delay between sensor readings. Set to an integer value (seconds).
 
    Default value is ``60`` seconds.
 
+LightDB Stream Service
+----------------------
+
+Sensor data is periodically sent to the following ``sensor/*`` endpoints of the
+LightDB Stream service:
+
+* ``sensor/temperature/celcius``: Temperature (°C)
+* ``sensor/temperature/farenheight``: Temperature (°F)
+* ``sensor/x_axis/acceleration/crest_factor``: X-Axis Crest Factor
+* ``sensor/x_axis/acceleration/high_frequency_rms``: X-Axis High-Frequency RMS
+  Acceleration (G)
+* ``sensor/x_axis/acceleration/kurtosis``: X-Axis Kurtosis
+* ``sensor/x_axis/acceleration/peak``: X-Axis Peak Acceleration (G)
+* ``sensor/x_axis/acceleration/rms``: X-Axis RMS Acceleration (G)
+* ``sensor/x_axis/velocity/peak/frequency``: X-Axis Peak Velocity Component
+  Frequency (Hz)
+* ``sensor/x_axis/velocity/peak/in_per_sec``: X-Axis Peak Velocity (in/sec)
+* ``sensor/x_axis/velocity/peak/mm_per_sec``: X-Axis Peak Velocity (mm/sec)
+* ``sensor/x_axis/velocity/rms/in_per_sec``: X-Axis RMS Velocity (in/sec)
+* ``sensor/x_axis/velocity/rms/mm_per_sec``: X-Axis RMS Velocity (mm/sec)
+* ``sensor/x_axis/acceleration/crest_factor``: X-Axis Crest Factor
+* ``sensor/x_axis/acceleration/high_frequency_rms``: X-Axis High-Frequency RMS
+  Acceleration (G)
+* ``sensor/z_axis//acceleration/kurtosis``: X-Axis Kurtosis
+* ``sensor/z_axis//acceleration/peak``: Z-Axis Peak Acceleration (G)
+* ``sensor/z_axis//acceleration/rms``: Z-Axis RMS Acceleration (G)
+* ``sensor/z_axis//velocity/peak/frequency``: Z-Axis Peak Velocity Component
+  Frequency (Hz)
+* ``sensor/z_axis//velocity/peak/in_per_sec``: Z-Axis Peak Velocity (in/sec)
+* ``sensor/z_axis//velocity/peak/mm_per_sec``: Z-Axis Peak Velocity (mm/sec)
+* ``sensor/z_axis//velocity/rms/in_per_sec``: Z-Axis RMS Velocity (in/sec)
+* ``sensor/z_axis//velocity/rms/mm_per_sec``: Z-Axis RMS Velocity (mm/sec)
+
+On hardware platforms with support for battery monitoring, battery voltage and
+level readings are periodically sent to the following ``battery/*`` endpoints:
+
+* ``battery/batt_v``: Battery Voltage (V)
+* ``battery/batt_lvl``: Battery Level (%)
+
+LightDB State Service
+---------------------
+
+The concept of Digital Twin is demonstrated with the LightDB State
+``example_int0`` and ``example_int1`` variables that are members of the
+``desired`` and ``state`` endpoints.
+
+* ``desired`` values may be changed from the cloud side. The device will
+  recognize these, validate them for [0..65535] bounding, and then reset these
+  endpoints to ``-1``
+
+* ``state`` values will be updated by the device whenever a valid value is
+  received from the ``desired`` endpoints. The cloud may read the ``state``
+  endpoints to determine device status, but only the device should ever write to
+  the ``state`` endpoints.
+
 Remote Procedure Call (RPC) Service
-===================================
+-----------------------------------
 
 The following RPCs can be initiated in the Remote Procedure Call menu of the
 `Golioth Console`_.
@@ -110,53 +179,111 @@ The following RPCs can be initiated in the Remote Procedure Call menu of the
    * ``3``: ``LOG_LEVEL_INF``
    * ``4``: ``LOG_LEVEL_DBG``
 
-LightDB State and LightDB Stream data
-=====================================
+Building the firmware
+*********************
 
-Time-Series Data (LightDB Stream)
----------------------------------
+The firmware build instructions below assume you have already set up a Zephyr
+development environment and have some basic familiarity with building firmware
+using the Zephyr Real Time Operating System (RTOS).
 
-An up-counting timer is periodically sent to the ``sensor/counter`` endpoint of the
-LightDB Stream service to simulate sensor data. If your board includes a
-battery, voltage and level readings will be sent to the ``battery`` endpoint.
+If you're brand new to building firmware with Zephyr, you will need to follow
+the `Zephyr Getting Started Guide`_ to install the Zephyr SDK and related
+dependencies.
 
-Stateful Data (LightDB State)
------------------------------
+We also provide free online `Developer Training`_ for Zephyr at:
 
-The concept of Digital Twin is demonstrated with the LightDB State
-``example_int0`` and ``example_int1`` variables that are members of the ``desired``
-and ``state`` endpoints.
+https://training.golioth.io/docs/zephyr-training
 
-* ``desired`` values may be changed from the cloud side. The device will recognize
-  these, validate them for [0..65535] bounding, and then reset these endpoints
-  to ``-1``
+.. pull-quote::
+   [!IMPORTANT]
 
-* ``state`` values will be updated by the device whenever a valid value is
-  received from the ``desired`` endpoints. The cloud may read the ``state``
-  endpoints to determine device status, but only the device should ever write to
-  the ``state`` endpoints.
+   Do not clone this repo using git. Zephyr's ``west`` meta-tool should be used
+   to set up your local workspace.
 
-Further Information in Header Files
-===================================
+Create a Python virtual environment (recommended)
+=================================================
 
-Please refer to the comments in each header file for a service-by-service
-explanation of this template.
+.. code-block:: shell
 
-Hardware Variations
-*******************
+   cd ~
+   mkdir golioth-reference-design-modbus-vibration-monitor
+   python -m venv golioth-reference-design-modbus-vibration-monitor/.venv
+   source golioth-reference-design-modbus-vibration-monitor/.venv/bin/activate
 
-Nordic nRF9160 DK
-=================
+Install ``west`` meta-tool
+==========================
 
-This reference design may be built for the `Nordic nRF9160 DK`_.
+.. code-block:: shell
 
-Use the following commands to build and program. (Use the same console commands
-from above to provision this board after programming the firmware.)
+   pip install wheel west
+
+Use ``west`` to initialize the workspace and install dependencies
+=================================================================
+
+.. code-block:: shell
+
+   cd ~/golioth-reference-design-modbus-vibration-monitor
+   west init -m git@github.com:golioth/reference-design-modbus-vibration-monitor.git .
+   west update
+   west zephyr-export
+   pip install -r deps/zephyr/scripts/requirements.txt
+
+Build the firmware
+==================
+
+Build the Zephyr firmware from the top-level workspace of your project. After a
+successful build you will see a new ``build/`` directory.
+
+Note that this git repository was cloned into the ``app`` folder, so any changes
+you make to the application itself should be committed inside this repository.
+The ``build`` and ``deps`` directories in the root of the workspace are managed
+outside of this git repository by the ``west`` meta-tool.
+
+.. pull-quote::
+   [!IMPORTANT]
+
+   When running the commands below, make sure to replace the placeholder
+   ``<your_zephyr_board_id>`` with the actual Zephyr board from the table above
+   that matches your follow-along hardware.
+
+   In addition, replace ``<your.semantic.version>`` with a `SemVer`_-compliant
+   version string (e.g. ``1.2.3``) that will be used by the DFU service when
+   checking for firmware updates.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"<your.semantic.version>\"
+   $ (.venv) west build -p -b <your_zephyr_board_id> app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"<your.semantic.version>\"
+
+For example, to build firmware version ``1.2.3`` for the `Nordic nRF9160
+DK`_-based follow-along hardware:
+
+.. code-block:: text
+
+   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"1.2.3\"
+
+Flash the firmware
+==================
+
+.. code-block:: text
+
    $ (.venv) west flash
+
+Provision the device
+====================
+
+In order for the device to securely authenticate with the Golioth Cloud, we need
+to provision the device with a pre-shared key (PSK). This key will persist
+across reboots and only needs to be set once after the device firmware has been
+programmed. In addition, flashing new firmware images with ``west flash`` should
+not erase these stored settings unless the entire device flash is erased.
+
+Configure the PSK-ID and PSK using the device UART shell and reboot the device:
+
+.. code-block:: text
+
+   uart:~$ settings set golioth/psk-id <my-psk-id@my-project>
+   uart:~$ settings set golioth/psk <my-psk>
+   uart:~$ kernel reboot cold
 
 External Libraries
 ******************
@@ -169,18 +296,19 @@ from ``west.yml`` and remove the includes/function calls from the C code.
   Aludel-Mini
 * `libostentus`_ is a helper library for controlling the Ostentus ePaper
   faceplate
-* `zephyr-network-info`_ is a helper library for querying, formatting, and returning network
-  connection information via Zephyr log or Golioth RPC
+* `zephyr-network-info`_ is a helper library for querying, formatting, and
+  returning network connection information via Zephyr log or Golioth RPC
 
-Using this template to start a new project
-******************************************
+Pulling in updates from the Reference Design Template
+*****************************************************
 
-Fork this template to create your own Reference Design. After checking out your fork, we recommend
-the following workflow to pull in future changes:
+This reference design was forked from the `Reference Design Template`_ repo. We
+recommend the following workflow to pull in future changes:
 
 * Setup
 
-  * Create a ``template`` remote based on the Reference Design Template repository
+  * Create a ``template`` remote based on the Reference Design Template
+    repository
 
 * Merge in template changes
 
@@ -208,3 +336,11 @@ the following workflow to pull in future changes:
 .. _golioth-zephyr-boards: https://github.com/golioth/golioth-zephyr-boards
 .. _libostentus: https://github.com/golioth/libostentus
 .. _zephyr-network-info: https://github.com/golioth/zephyr-network-info
+.. _Reference Design Template: https://github.com/golioth/reference-design-template
+.. _Modbus Vibration Monitor Project Page: https://projects.golioth.io/reference-designs/modbus-vibration-monitor
+.. _nRF9160 DK Follow-Along Guide: https://projects.golioth.io/reference-designs/modbus-vibration-monitor/guide-nrf9160-dk
+.. _releases: https://github.com/golioth/reference-design-modbus-vibration-monitor/releases
+.. _Zephyr Getting Started Guide: https://docs.zephyrproject.org/latest/develop/getting_started/
+.. _Developer Training: https://training.golioth.io
+.. _SemVer: https://semver.org
+.. _Banner Sure Cross® QM30VT2: https://www.bannerengineering.com/us/en/products/part.806276.html

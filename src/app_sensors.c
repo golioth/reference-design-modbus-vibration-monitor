@@ -5,14 +5,16 @@
  */
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 
-#include <net/golioth/system_client.h>
+#include <golioth/client.h>
+#include <golioth/stream.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/kernel.h>
 #include <zephyr/modbus/modbus.h>
 #include <zephyr/drivers/sensor.h>
 
-#include "app_work.h"
+#include "app_sensors.h"
 #include "qm30vt2.h"
 
 #ifdef CONFIG_LIB_OSTENTUS
@@ -97,7 +99,13 @@ const static struct modbus_iface_param client_param = {
 	/* clang-format on */
 };
 
-static int init_modbus_client(void)
+int enable_rs485_transceiver(void)
+{
+	/* Set the RS-485 transceiver EN signal */
+	return gpio_pin_configure_dt(&rs485_en, GPIO_OUTPUT_ACTIVE);
+}
+
+int init_modbus_client(void)
 {
 	const char iface_name[] = {DEVICE_DT_NAME(MODBUS_NODE)};
 
@@ -107,18 +115,21 @@ static int init_modbus_client(void)
 }
 
 /* Callback for LightDB Stream */
-static int async_error_handler(struct golioth_req_rsp *rsp)
+
+static void async_error_handler(struct golioth_client *client,
+				const struct golioth_response *response,
+				const char *path,
+				void *arg)
 {
-	if (rsp->err) {
-		LOG_ERR("Async task failed: %d", rsp->err);
-		return rsp->err;
+	if (response->status != GOLIOTH_OK) {
+		LOG_ERR("Async task failed: %d", response->status);
+		return;
 	}
-	return 0;
 }
 
 /* This will be called by the main() loop */
 /* Do all of your work here! */
-void app_work_sensor_read(void)
+void app_sensors_read_and_stream(void)
 {
 	int err;
 	char json_buf[1024];
@@ -126,7 +137,7 @@ void app_work_sensor_read(void)
 	struct qm30vt2_measurement meas = {0};
 
 	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
-		read_and_report_battery();
+		read_and_report_battery(client);
 		IF_ENABLED(CONFIG_LIB_OSTENTUS, (
 			slide_set(BATTERY_V, get_batt_v_str(), strlen(get_batt_v_str()));
 			slide_set(BATTERY_LVL, get_batt_lvl_str(),
@@ -217,8 +228,13 @@ void app_work_sensor_read(void)
 
 	LOG_DBG("%s", json_buf);
 
-	err = golioth_stream_push_cb(client, "sensor", GOLIOTH_CONTENT_FORMAT_APP_JSON, json_buf,
-				     strlen(json_buf), async_error_handler, NULL);
+	err = golioth_stream_set_async(client,
+				       "sensor",
+				       GOLIOTH_CONTENT_TYPE_JSON,
+				       json_buf,
+				       strlen(json_buf),
+				       async_error_handler,
+				       NULL);
 	if (err) {
 		LOG_ERR("Failed to send sensor data to Golioth: %d", err);
 	}
@@ -226,7 +242,7 @@ void app_work_sensor_read(void)
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
 		/* Update slide values on Ostentus
 		 *  -values should be sent as strings
-		 *  -use the enum from app_work.h for slide key values
+		 *  -use the enum from app_sensors.h for slide key values
 		 */
 		snprintk(json_buf, sizeof(json_buf), "%.2f F",
 			 sensor_value_to_double(&meas.temp_f));
@@ -318,16 +334,7 @@ void app_work_sensor_read(void)
 	));
 }
 
-void app_work_init(struct golioth_client *work_client)
+void app_sensors_init(struct golioth_client *work_client)
 {
 	client = work_client;
-
-#if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, rs485_8_click_en_gpios)
-	/* Set the RS485 8 Click board EN signal */
-	gpio_pin_configure_dt(&rs485_en, GPIO_OUTPUT_ACTIVE);
-#endif
-
-	if (init_modbus_client()) {
-		LOG_ERR("Modbus RTU client initialization failed");
-	}
 }

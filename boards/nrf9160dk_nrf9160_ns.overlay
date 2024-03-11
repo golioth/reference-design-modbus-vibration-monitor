@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "nrf_dk_common.dtsi"
+
 / {
 	zephyr,user {
 		rs485-8-click-en-gpios = <&mikrobus_header_1 1 GPIO_ACTIVE_HIGH>;

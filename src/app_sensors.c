@@ -160,45 +160,7 @@ void app_sensors_read_and_stream(void)
 		return;
 	}
 
-	/* Log Z-Axis measurements */
-	LOG_DBG("QM30VT2: Temperature=%.2f °F", sensor_value_to_double(&meas.temp_f));
-	LOG_DBG("QM30VT2: Temperature=%.2f °C", sensor_value_to_double(&meas.temp_c));
-	LOG_DBG("QM30VT2: Z-Axis RMS Velocity=%.4f in/sec",
-		sensor_value_to_double(&meas.z_vel_rms_in));
-	LOG_DBG("QM30VT2: Z-Axis Peak Velocity=%.4f in/sec",
-		sensor_value_to_double(&meas.z_vel_peak_in));
-	LOG_DBG("QM30VT2: Z-Axis RMS Velocity=%.3f mm/sec",
-		sensor_value_to_double(&meas.z_vel_rms_mm));
-	LOG_DBG("QM30VT2: Z-Axis Peak Velocity=%.3f mm/sec",
-		sensor_value_to_double(&meas.z_vel_peak_mm));
-	LOG_DBG("QM30VT2: Z-Axis Peak Velocity Component Frequency=%.1f Hz",
-		sensor_value_to_double(&meas.z_vel_peak_freq));
-	LOG_DBG("QM30VT2: Z-Axis RMS Acceleration=%.3f G", sensor_value_to_double(&meas.z_acc_rms));
-	LOG_DBG("QM30VT2: Z-Axis Peak Acceleration=%.3f G",
-		sensor_value_to_double(&meas.z_acc_peak));
-	LOG_DBG("QM30VT2: Z-Axis Crest Factor=%.3f", sensor_value_to_double(&meas.z_acc_cf));
-	LOG_DBG("QM30VT2: Z-Axis Kurtosis=%.3f", sensor_value_to_double(&meas.z_acc_kurt));
-	LOG_DBG("QM30VT2: Z-Axis High-Frequency RMS Acceleration=%.3f G",
-		sensor_value_to_double(&meas.z_acc_rms_hf));
-
-	/* Log X-Axis measurements */
-	LOG_DBG("QM30VT2: X-Axis RMS Velocity=%.4f in/sec",
-		sensor_value_to_double(&meas.x_vel_rms_in));
-	LOG_DBG("QM30VT2: X-Axis Peak Velocity=%.4f in/sec",
-		sensor_value_to_double(&meas.x_vel_peak_in));
-	LOG_DBG("QM30VT2: X-Axis RMS Velocity=%.3f mm/sec",
-		sensor_value_to_double(&meas.x_vel_rms_mm));
-	LOG_DBG("QM30VT2: X-Axis Peak Velocity=%.3f mm/sec",
-		sensor_value_to_double(&meas.x_vel_peak_mm));
-	LOG_DBG("QM30VT2: X-Axis Peak Velocity Component Frequency=%.1f Hz",
-		sensor_value_to_double(&meas.x_vel_peak_freq));
-	LOG_DBG("QM30VT2: X-Axis RMS Acceleration=%.3f G", sensor_value_to_double(&meas.x_acc_rms));
-	LOG_DBG("QM30VT2: X-Axis Peak Acceleration=%.3f G",
-		sensor_value_to_double(&meas.x_acc_peak));
-	LOG_DBG("QM30VT2: X-Axis Crest Factor=%.3f", sensor_value_to_double(&meas.x_acc_cf));
-	LOG_DBG("QM30VT2: X-Axis Kurtosis=%.3f", sensor_value_to_double(&meas.x_acc_kurt));
-	LOG_DBG("QM30VT2: X-Axis High-Frequency RMS Acceleration=%.3f G",
-		sensor_value_to_double(&meas.x_acc_rms_hf));
+	qm30vt2_log_measurements(&meas);
 
 	/* Send sensor data to Golioth */
 	/* clang-format off */

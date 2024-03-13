@@ -85,8 +85,8 @@ static void start_golioth_client(void)
 	/* Observe State service data */
 	app_state_observe(client);
 
-	/* Initialize app sensors */
-	app_sensors_init(client);
+	/* Set Golioth Client for streaming sensor data */
+	app_sensors_set_client(client);
 
 	/* Register Settings service */
 	app_settings_register(client);
@@ -177,19 +177,8 @@ int main(void)
 	/* Get system thread id so loop delay change event can wake main */
 	_system_thread = k_current_get();
 
-#if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, rs485_8_click_en_gpios)
-	err = enable_rs485_transceiver();
-	if (err) {
-		LOG_ERR("RS-485 transceiver enable pin configuration failed");
-		return err;
-	}
-#endif
-
-	err = init_modbus_client();
-	if (err) {
-		LOG_ERR("Modbus RTU client initialization failed");
-		return err;
-	}
+	/* Initialize sensors */
+	app_sensors_init();
 
 #if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 	/* Initialize Golioth logo LED */

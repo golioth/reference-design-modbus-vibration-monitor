@@ -99,13 +99,7 @@ const static struct modbus_iface_param client_param = {
 	/* clang-format on */
 };
 
-int enable_rs485_transceiver(void)
-{
-	/* Set the RS-485 transceiver EN signal */
-	return gpio_pin_configure_dt(&rs485_en, GPIO_OUTPUT_ACTIVE);
-}
-
-int init_modbus_client(void)
+static int init_modbus_client(void)
 {
 	const char iface_name[] = {DEVICE_DT_NAME(MODBUS_NODE)};
 
@@ -114,8 +108,21 @@ int init_modbus_client(void)
 	return modbus_init_client(client_iface, client_param);
 }
 
-/* Callback for LightDB Stream */
+void app_sensors_init(void)
+{
+#if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, rs485_8_click_en_gpios)
+	/* Set the RS-485 transceiver EN signal */
+	if (gpio_pin_configure_dt(&rs485_en, GPIO_OUTPUT_ACTIVE)) {
+		LOG_ERR("RS-485 transceiver enable pin configuration failed");
+	}
+#endif
 
+	if (init_modbus_client()) {
+		LOG_ERR("Modbus RTU client initialization failed");
+	}
+}
+
+/* Callback for LightDB Stream */
 static void async_error_handler(struct golioth_client *client,
 				const struct golioth_response *response,
 				const char *path,
@@ -334,7 +341,7 @@ void app_sensors_read_and_stream(void)
 	));
 }
 
-void app_sensors_init(struct golioth_client *sensors_client)
+void app_sensors_set_client(struct golioth_client *sensors_client)
 {
 	client = sensors_client;
 }

@@ -16,9 +16,8 @@
 
 #include <golioth/client.h>
 
-int enable_rs485_transceiver(void);
-int init_modbus_client(void);
-void app_sensors_init(struct golioth_client *sensors_client);
+void app_sensors_init(void);
+void app_sensors_set_client(struct golioth_client *sensors_client);
 void app_sensors_read_and_stream(void);
 
 #define LABEL_TEMP	   "Temperature"

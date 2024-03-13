@@ -195,7 +195,7 @@ void app_sensors_read_and_stream(void)
 	);
 	/* clang-format on */
 
-	LOG_DBG("%s", json_buf);
+	/* LOG_DBG("%s", json_buf); */
 
 	err = golioth_stream_set_async(client,
 				       "sensor",

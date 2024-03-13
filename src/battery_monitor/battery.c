@@ -331,7 +331,7 @@ int stream_battery_data(struct golioth_client *client, struct battery_data *batt
 	snprintk(json_buf, sizeof(json_buf), JSON_FMT, batt_data->battery_voltage_mv / 1000,
 		 batt_data->battery_voltage_mv % 1000, batt_data->battery_level_pptt / 100,
 		 batt_data->battery_level_pptt % 100);
-	LOG_DBG("%s", json_buf);
+	/* LOG_DBG("%s", json_buf); */
 
 	err = golioth_stream_set_async(client,
 				       stream_endpoint,

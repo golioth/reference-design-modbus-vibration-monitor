@@ -18,7 +18,7 @@
 
 int enable_rs485_transceiver(void);
 int init_modbus_client(void);
-void app_sensors_init(struct golioth_client *work_client);
+void app_sensors_init(struct golioth_client *sensors_client);
 void app_sensors_read_and_stream(void);
 
 #define LABEL_TEMP	   "Temperature"

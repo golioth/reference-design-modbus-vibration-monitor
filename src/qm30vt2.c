@@ -134,9 +134,11 @@ int qm30vt2_read_data(const int iface, uint8_t unit_id, struct qm30vt2_measureme
 
 void qm30vt2_log_measurements(struct qm30vt2_measurement *meas)
 {
-	/* Log Z-Axis measurements */
+	/* Log Temperature measurements */
 	LOG_DBG("QM30VT2: Temperature=%.2f °F", sensor_value_to_double(&meas->temp_f));
 	LOG_DBG("QM30VT2: Temperature=%.2f °C", sensor_value_to_double(&meas->temp_c));
+
+	/* Log Z-Axis measurements */
 	LOG_DBG("QM30VT2: Z-Axis RMS Velocity=%.4f in/sec",
 		sensor_value_to_double(&meas->z_vel_rms_in));
 	LOG_DBG("QM30VT2: Z-Axis Peak Velocity=%.4f in/sec",

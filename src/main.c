@@ -40,6 +40,7 @@ static struct golioth_client *client;
 K_SEM_DEFINE(connected, 0, 1);
 
 static k_tid_t _system_thread = 0;
+
 #if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 static const struct gpio_dt_spec golioth_led = GPIO_DT_SPEC_GET(DT_ALIAS(golioth_led), gpios);
 #endif /* DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
@@ -151,9 +152,13 @@ void golioth_connection_led_set(uint8_t state)
 #if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 	/* Turn on Golioth logo LED once connected */
 	gpio_pin_set_dt(&golioth_led, pin_state);
+<<<<<<< HEAD
 #endif /* DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
-	/* Change the state of the Golioth LED on Ostentus */
-	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_golioth_set(pin_state);));
+	=======
+#endif /* #if DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
+		>>>>>>> template/main
+		/* Change the state of the Golioth LED on Ostentus */
+		IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_golioth_set(pin_state);));
 }
 
 int main(void)
@@ -177,30 +182,38 @@ int main(void)
 	/* Get system thread id so loop delay change event can wake main */
 	_system_thread = k_current_get();
 
+<<<<<<< HEAD
 	/* Initialize sensors */
 	app_sensors_init();
 
+=======
+>>>>>>> template/main
 #if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
 	/* Initialize Golioth logo LED */
 	err = gpio_pin_configure_dt(&golioth_led, GPIO_OUTPUT_INACTIVE);
 	if (err) {
 		LOG_ERR("Unable to configure LED for Golioth Logo");
 	}
+<<<<<<< HEAD
 #endif /* DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
+	=======
+#endif /* #if DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
+		>>>>>>> template/main
 
 #ifdef CONFIG_SOC_NRF9160
-	/* Start LTE asynchronously if the nRF9160 is used.
-	 * Golioth Client will start automatically when LTE connects
-	 */
+		/* Start LTE asynchronously if the nRF9160 is used.
+		 * Golioth Client will start automatically when LTE connects
+		 */
 
-	LOG_INF("Connecting to LTE, this may take some time...");
+		LOG_INF("Connecting to LTE, this may take some time...");
 	lte_lc_init_and_connect_async(lte_handler);
 
 #else
-	/* If nRF9160 is not used, start the Golioth Client and block until connected */
+		/* If nRF9160 is not used, start the Golioth Client and block until connected */
 
-	/* Run WiFi/DHCP if necessary */
-	if (IS_ENABLED(CONFIG_GOLIOTH_SAMPLE_COMMON)) {
+		/* Run WiFi/DHCP if necessary */
+		if (IS_ENABLED(CONFIG_GOLIOTH_SAMPLE_COMMON))
+	{
 		net_connect();
 	}
 

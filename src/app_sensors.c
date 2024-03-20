@@ -163,49 +163,53 @@ void app_sensors_read_and_stream(void)
 	qm30vt2_log_measurements(&meas);
 
 	/* Send sensor data to Golioth */
-	/* clang-format off */
-	snprintk(json_buf, sizeof(json_buf), JSON_FMT,
-		/* Temperature */
-		sensor_value_to_double(&meas.temp_c),
-		sensor_value_to_double(&meas.temp_f),
+	if (golioth_client_is_connected(client)) {
+		/* clang-format off */
+		snprintk(json_buf, sizeof(json_buf), JSON_FMT,
+			/* Temperature */
+			sensor_value_to_double(&meas.temp_c),
+			sensor_value_to_double(&meas.temp_f),
 
-		/* X-Axis Vibration */
-		sensor_value_to_double(&meas.x_acc_cf),
-		sensor_value_to_double(&meas.x_acc_rms_hf),
-		sensor_value_to_double(&meas.x_acc_kurt),
-		sensor_value_to_double(&meas.x_acc_peak),
-		sensor_value_to_double(&meas.x_acc_rms),
-		sensor_value_to_double(&meas.x_vel_peak_freq),
-		sensor_value_to_double(&meas.x_vel_peak_in),
-		sensor_value_to_double(&meas.x_vel_peak_mm),
-		sensor_value_to_double(&meas.x_vel_rms_in),
-		sensor_value_to_double(&meas.x_vel_rms_mm),
+			/* X-Axis Vibration */
+			sensor_value_to_double(&meas.x_acc_cf),
+			sensor_value_to_double(&meas.x_acc_rms_hf),
+			sensor_value_to_double(&meas.x_acc_kurt),
+			sensor_value_to_double(&meas.x_acc_peak),
+			sensor_value_to_double(&meas.x_acc_rms),
+			sensor_value_to_double(&meas.x_vel_peak_freq),
+			sensor_value_to_double(&meas.x_vel_peak_in),
+			sensor_value_to_double(&meas.x_vel_peak_mm),
+			sensor_value_to_double(&meas.x_vel_rms_in),
+			sensor_value_to_double(&meas.x_vel_rms_mm),
 
-		/* Z-Axis Vibration */
-		sensor_value_to_double(&meas.z_acc_cf),
-		sensor_value_to_double(&meas.z_acc_rms_hf),
-		sensor_value_to_double(&meas.z_acc_kurt),
-		sensor_value_to_double(&meas.z_acc_peak),
-		sensor_value_to_double(&meas.z_acc_rms),
-		sensor_value_to_double(&meas.z_vel_peak_freq),
-		sensor_value_to_double(&meas.z_vel_peak_in),
-		sensor_value_to_double(&meas.z_vel_peak_mm),
-		sensor_value_to_double(&meas.z_vel_rms_in),
-		sensor_value_to_double(&meas.z_vel_rms_mm)
-	);
-	/* clang-format on */
+			/* Z-Axis Vibration */
+			sensor_value_to_double(&meas.z_acc_cf),
+			sensor_value_to_double(&meas.z_acc_rms_hf),
+			sensor_value_to_double(&meas.z_acc_kurt),
+			sensor_value_to_double(&meas.z_acc_peak),
+			sensor_value_to_double(&meas.z_acc_rms),
+			sensor_value_to_double(&meas.z_vel_peak_freq),
+			sensor_value_to_double(&meas.z_vel_peak_in),
+			sensor_value_to_double(&meas.z_vel_peak_mm),
+			sensor_value_to_double(&meas.z_vel_rms_in),
+			sensor_value_to_double(&meas.z_vel_rms_mm)
+		);
+		/* clang-format on */
 
-	/* LOG_DBG("%s", json_buf); */
+		/* LOG_DBG("%s", json_buf); */
 
-	err = golioth_stream_set_async(client,
-				       "sensor",
-				       GOLIOTH_CONTENT_TYPE_JSON,
-				       json_buf,
-				       strlen(json_buf),
-				       async_error_handler,
-				       NULL);
-	if (err) {
-		LOG_ERR("Failed to send sensor data to Golioth: %d", err);
+		err = golioth_stream_set_async(client,
+					"sensor",
+					GOLIOTH_CONTENT_TYPE_JSON,
+					json_buf,
+					strlen(json_buf),
+					async_error_handler,
+					NULL);
+		if (err) {
+			LOG_ERR("Failed to send sensor data to Golioth: %d", err);
+		}
+	} else {
+		LOG_WRN("Device is not connected to Golioth, unable to send sensor data");
 	}
 
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (

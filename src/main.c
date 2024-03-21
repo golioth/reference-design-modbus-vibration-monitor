@@ -5,6 +5,7 @@
  */
 
 #include <zephyr/logging/log.h>
+#include <zephyr/logging/log_ctrl.h>
 LOG_MODULE_REGISTER(golioth_modbus_vibration_monitor, LOG_LEVEL_DBG);
 
 #include "app_rpc.h"
@@ -162,6 +163,9 @@ void golioth_connection_led_set(uint8_t state)
 int main(void)
 {
 	int err;
+
+	/* Workaround for https://github.com/golioth/golioth-firmware-sdk/issues/413 */
+	log_filter_set(NULL, 0, log_source_id_get("golioth_coap_client_zephyr"), LOG_LEVEL_ERR);
 
 	LOG_DBG("Started Modbus Vibration Monitor app");
 

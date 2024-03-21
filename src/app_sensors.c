@@ -33,8 +33,7 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 #define JSON_FMT \
 "{" \
 	"\"temperature\": {" \
-		"\"celcius\":%f," \
-		"\"farenheight\":%f" \
+		"\"celcius\":%f" \
 	"}," \
 	"\"x_axis\": {" \
 		"\"acceleration\": {" \
@@ -47,11 +46,9 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 		"\"velocity\": {" \
 			"\"peak\": {" \
 				"\"frequency\":%f," \
-				"\"in_per_sec\":%f," \
 				"\"mm_per_sec\":%f" \
 			"}," \
 			"\"rms\": {" \
-				"\"in_per_sec\":%f," \
 				"\"mm_per_sec\":%f" \
 			"}" \
 		"}" \
@@ -67,11 +64,9 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 		"\"velocity\": {" \
 			"\"peak\": {" \
 				"\"frequency\":%f," \
-				"\"in_per_sec\":%f," \
 				"\"mm_per_sec\":%f" \
 			"}," \
 			"\"rms\": {" \
-				"\"in_per_sec\":%f," \
 				"\"mm_per_sec\":%f" \
 			"}" \
 		"}" \
@@ -168,7 +163,6 @@ void app_sensors_read_and_stream(void)
 		snprintk(json_buf, sizeof(json_buf), JSON_FMT,
 			/* Temperature */
 			sensor_value_to_double(&meas.temp_c),
-			sensor_value_to_double(&meas.temp_f),
 
 			/* X-Axis Vibration */
 			sensor_value_to_double(&meas.x_acc_cf),
@@ -177,9 +171,7 @@ void app_sensors_read_and_stream(void)
 			sensor_value_to_double(&meas.x_acc_peak),
 			sensor_value_to_double(&meas.x_acc_rms),
 			sensor_value_to_double(&meas.x_vel_peak_freq),
-			sensor_value_to_double(&meas.x_vel_peak_in),
 			sensor_value_to_double(&meas.x_vel_peak_mm),
-			sensor_value_to_double(&meas.x_vel_rms_in),
 			sensor_value_to_double(&meas.x_vel_rms_mm),
 
 			/* Z-Axis Vibration */
@@ -189,9 +181,7 @@ void app_sensors_read_and_stream(void)
 			sensor_value_to_double(&meas.z_acc_peak),
 			sensor_value_to_double(&meas.z_acc_rms),
 			sensor_value_to_double(&meas.z_vel_peak_freq),
-			sensor_value_to_double(&meas.z_vel_peak_in),
 			sensor_value_to_double(&meas.z_vel_peak_mm),
-			sensor_value_to_double(&meas.z_vel_rms_in),
 			sensor_value_to_double(&meas.z_vel_rms_mm)
 		);
 		/* clang-format on */
@@ -217,25 +207,14 @@ void app_sensors_read_and_stream(void)
 		 *  -values should be sent as strings
 		 *  -use the enum from app_sensors.h for slide key values
 		 */
-		snprintk(json_buf, sizeof(json_buf), "%.2f F",
-			 sensor_value_to_double(&meas.temp_f));
-		slide_set(TEMP_F, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.2f C",
 			 sensor_value_to_double(&meas.temp_c));
 		slide_set(TEMP_C, json_buf, strlen(json_buf));
 
-		snprintk(json_buf, sizeof(json_buf), "%.4f in/sec",
-			 sensor_value_to_double(&meas.z_vel_rms_in));
-		slide_set(Z_VEL_RMS_IN, json_buf, strlen(json_buf));
-
 		snprintk(json_buf, sizeof(json_buf), "%.3f mm/sec",
 			 sensor_value_to_double(&meas.z_vel_rms_mm));
 		slide_set(Z_VEL_RMS_MM, json_buf, strlen(json_buf));
-
-		snprintk(json_buf, sizeof(json_buf), "%.4f in/sec",
-			 sensor_value_to_double(&meas.x_vel_rms_in));
-		slide_set(X_VEL_RMS_IN, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f mm/sec",
 			 sensor_value_to_double(&meas.x_vel_rms_mm));
@@ -281,17 +260,9 @@ void app_sensors_read_and_stream(void)
 			 sensor_value_to_double(&meas.x_acc_cf));
 		slide_set(X_ACC_CF, json_buf, strlen(json_buf));
 
-		snprintk(json_buf, sizeof(json_buf), "%.4f in/sec",
-			 sensor_value_to_double(&meas.z_vel_peak_in));
-		slide_set(Z_VEL_PEAK_IN, json_buf, strlen(json_buf));
-
 		snprintk(json_buf, sizeof(json_buf), "%.3f mm/sec",
 			 sensor_value_to_double(&meas.z_vel_peak_mm));
 		slide_set(Z_VEL_PEAK_MM, json_buf, strlen(json_buf));
-
-		snprintk(json_buf, sizeof(json_buf), "%.4f in/sec",
-			 sensor_value_to_double(&meas.x_vel_peak_in));
-		slide_set(X_VEL_PEAK_IN, json_buf, strlen(json_buf));
 
 		snprintk(json_buf, sizeof(json_buf), "%.3f mm/sec",
 			 sensor_value_to_double(&meas.x_vel_peak_mm));

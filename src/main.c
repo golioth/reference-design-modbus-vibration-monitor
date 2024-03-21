@@ -242,11 +242,8 @@ int main(void)
 		 *  - use the enum in app_sensors.h to add new keys
 		 *  - values are updated using these keys (see app_sensors.c)
 		 */
-		slide_add(TEMP_F, LABEL_TEMP, strlen(LABEL_TEMP));
 		slide_add(TEMP_C, LABEL_TEMP, strlen(LABEL_TEMP));
-		slide_add(Z_VEL_RMS_IN, LABEL_Z_VEL_RMS, strlen(LABEL_Z_VEL_RMS));
 		slide_add(Z_VEL_RMS_MM, LABEL_Z_VEL_RMS, strlen(LABEL_Z_VEL_RMS));
-		slide_add(X_VEL_RMS_IN, LABEL_X_VEL_RMS, strlen(LABEL_X_VEL_RMS));
 		slide_add(X_VEL_RMS_MM, LABEL_X_VEL_RMS, strlen(LABEL_X_VEL_RMS));
 		slide_add(Z_ACC_PEAK, LABEL_Z_ACC_PEAK, strlen(LABEL_Z_ACC_PEAK));
 		slide_add(X_ACC_PEAK, LABEL_X_ACC_PEAK, strlen(LABEL_X_ACC_PEAK));
@@ -258,9 +255,7 @@ int main(void)
 		slide_add(X_ACC_KURT, LABEL_X_ACC_KURT, strlen(LABEL_X_ACC_KURT));
 		slide_add(Z_ACC_CF, LABEL_Z_ACC_CF, strlen(LABEL_Z_ACC_CF));
 		slide_add(X_ACC_CF, LABEL_X_ACC_CF, strlen(LABEL_X_ACC_CF));
-		slide_add(Z_VEL_PEAK_IN, LABEL_Z_VEL_PEAK, strlen(LABEL_Z_VEL_PEAK));
 		slide_add(Z_VEL_PEAK_MM, LABEL_Z_VEL_PEAK, strlen(LABEL_Z_VEL_PEAK));
-		slide_add(X_VEL_PEAK_IN, LABEL_X_VEL_PEAK, strlen(LABEL_X_VEL_PEAK));
 		slide_add(X_VEL_PEAK_MM, LABEL_X_VEL_PEAK, strlen(LABEL_X_VEL_PEAK));
 		slide_add(Z_ACC_RMS_HF, LABEL_Z_ACC_RMS_HF, strlen(LABEL_Z_ACC_RMS_HF));
 		slide_add(X_ACC_RMS_HF, LABEL_X_ACC_RMS_HF, strlen(LABEL_X_ACC_RMS_HF));

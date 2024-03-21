@@ -46,11 +46,8 @@ void app_sensors_read_and_stream(void);
  * inserting elements with the name of your choice to this enum.
  */
 typedef enum {
-	TEMP_F,
 	TEMP_C,
-	Z_VEL_RMS_IN,
 	Z_VEL_RMS_MM,
-	X_VEL_RMS_IN,
 	X_VEL_RMS_MM,
 	Z_ACC_PEAK,
 	X_ACC_PEAK,
@@ -62,9 +59,7 @@ typedef enum {
 	X_ACC_KURT,
 	Z_ACC_CF,
 	X_ACC_CF,
-	Z_VEL_PEAK_IN,
 	Z_VEL_PEAK_MM,
-	X_VEL_PEAK_IN,
 	X_VEL_PEAK_MM,
 	Z_ACC_RMS_HF,
 	X_ACC_RMS_HF,

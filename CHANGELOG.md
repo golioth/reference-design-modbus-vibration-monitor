@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Only attempt to send sensor data when Golioth client is connected.
 - Merge changes from [`golioth/reference-design-template@813248f`](https://github.com/golioth/reference-design-template/tree/813248f9a0b1a882140f3906956b34f8dfee0e8a).
 
+### Removed
+
+- Remove imperial units from vibration data.
+
 ## [1.0.0] - 2024-02-19
 
 - Initial release.

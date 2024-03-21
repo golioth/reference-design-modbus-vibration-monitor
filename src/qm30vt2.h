@@ -85,5 +85,6 @@ struct qm30vt2_measurement {
 };
 
 int qm30vt2_read_data(const int iface, uint8_t unit_id, struct qm30vt2_measurement *meas);
+void qm30vt2_log_measurements(struct qm30vt2_measurement *meas);
 
 #endif /* __QM30VT2_H__ */

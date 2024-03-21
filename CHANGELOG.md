@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent sending excessive warning log messages on flaky connections.
 - Upgrade `golioth-firmware-sdk` to `v0.11.1`.
 - Only attempt to send sensor data when Golioth client is connected.
-- Merge changes from [`golioth/reference-design-template@c42f566`](https://github.com/golioth/reference-design-template/tree/c42f56600bdfbd7eadcdebde8cfa0a127bcd90dd).
+- Merge changes from [`golioth/reference-design-template@813248f`](https://github.com/golioth/reference-design-template/tree/813248f9a0b1a882140f3906956b34f8dfee0e8a).
 
 ## [1.0.0] - 2024-02-19
 

@@ -63,7 +63,7 @@ This firmware can be built for a variety of supported hardware platforms.
      - `Modbus Vibration Monitor Project Page`_
    * - .. image:: images/modbus_vibration_monitor_aludel_mini_v1_photo_top.jpg
           :width: 240
-     - ``aludel_elixir_v1_ns``
+     - ``aludel_elixir_ns``
      -
 
 Firmware Overview

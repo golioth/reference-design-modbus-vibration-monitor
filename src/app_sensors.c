@@ -5,14 +5,16 @@
  */
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 
-#include <net/golioth/system_client.h>
+#include <golioth/client.h>
+#include <golioth/stream.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/kernel.h>
 #include <zephyr/modbus/modbus.h>
 #include <zephyr/drivers/sensor.h>
 
-#include "app_work.h"
+#include "app_sensors.h"
 #include "qm30vt2.h"
 
 #ifdef CONFIG_LIB_OSTENTUS
@@ -106,19 +108,35 @@ static int init_modbus_client(void)
 	return modbus_init_client(client_iface, client_param);
 }
 
-/* Callback for LightDB Stream */
-static int async_error_handler(struct golioth_req_rsp *rsp)
+void app_sensors_init(void)
 {
-	if (rsp->err) {
-		LOG_ERR("Async task failed: %d", rsp->err);
-		return rsp->err;
+#if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, rs485_8_click_en_gpios)
+	/* Set the RS-485 transceiver EN signal */
+	if (gpio_pin_configure_dt(&rs485_en, GPIO_OUTPUT_ACTIVE)) {
+		LOG_ERR("RS-485 transceiver enable pin configuration failed");
 	}
-	return 0;
+#endif
+
+	if (init_modbus_client()) {
+		LOG_ERR("Modbus RTU client initialization failed");
+	}
+}
+
+/* Callback for LightDB Stream */
+static void async_error_handler(struct golioth_client *client,
+				const struct golioth_response *response,
+				const char *path,
+				void *arg)
+{
+	if (response->status != GOLIOTH_OK) {
+		LOG_ERR("Async task failed: %d", response->status);
+		return;
+	}
 }
 
 /* This will be called by the main() loop */
 /* Do all of your work here! */
-void app_work_sensor_read(void)
+void app_sensors_read_and_stream(void)
 {
 	int err;
 	char json_buf[1024];
@@ -126,7 +144,7 @@ void app_work_sensor_read(void)
 	struct qm30vt2_measurement meas = {0};
 
 	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
-		read_and_report_battery();
+		read_and_report_battery(client);
 		IF_ENABLED(CONFIG_LIB_OSTENTUS, (
 			slide_set(BATTERY_V, get_batt_v_str(), strlen(get_batt_v_str()));
 			slide_set(BATTERY_LVL, get_batt_lvl_str(),
@@ -142,91 +160,62 @@ void app_work_sensor_read(void)
 		return;
 	}
 
-	/* Log Z-Axis measurements */
-	LOG_DBG("QM30VT2: Temperature=%.2f °F", sensor_value_to_double(&meas.temp_f));
-	LOG_DBG("QM30VT2: Temperature=%.2f °C", sensor_value_to_double(&meas.temp_c));
-	LOG_DBG("QM30VT2: Z-Axis RMS Velocity=%.4f in/sec",
-		sensor_value_to_double(&meas.z_vel_rms_in));
-	LOG_DBG("QM30VT2: Z-Axis Peak Velocity=%.4f in/sec",
-		sensor_value_to_double(&meas.z_vel_peak_in));
-	LOG_DBG("QM30VT2: Z-Axis RMS Velocity=%.3f mm/sec",
-		sensor_value_to_double(&meas.z_vel_rms_mm));
-	LOG_DBG("QM30VT2: Z-Axis Peak Velocity=%.3f mm/sec",
-		sensor_value_to_double(&meas.z_vel_peak_mm));
-	LOG_DBG("QM30VT2: Z-Axis Peak Velocity Component Frequency=%.1f Hz",
-		sensor_value_to_double(&meas.z_vel_peak_freq));
-	LOG_DBG("QM30VT2: Z-Axis RMS Acceleration=%.3f G", sensor_value_to_double(&meas.z_acc_rms));
-	LOG_DBG("QM30VT2: Z-Axis Peak Acceleration=%.3f G",
-		sensor_value_to_double(&meas.z_acc_peak));
-	LOG_DBG("QM30VT2: Z-Axis Crest Factor=%.3f", sensor_value_to_double(&meas.z_acc_cf));
-	LOG_DBG("QM30VT2: Z-Axis Kurtosis=%.3f", sensor_value_to_double(&meas.z_acc_kurt));
-	LOG_DBG("QM30VT2: Z-Axis High-Frequency RMS Acceleration=%.3f G",
-		sensor_value_to_double(&meas.z_acc_rms_hf));
-
-	/* Log X-Axis measurements */
-	LOG_DBG("QM30VT2: X-Axis RMS Velocity=%.4f in/sec",
-		sensor_value_to_double(&meas.x_vel_rms_in));
-	LOG_DBG("QM30VT2: X-Axis Peak Velocity=%.4f in/sec",
-		sensor_value_to_double(&meas.x_vel_peak_in));
-	LOG_DBG("QM30VT2: X-Axis RMS Velocity=%.3f mm/sec",
-		sensor_value_to_double(&meas.x_vel_rms_mm));
-	LOG_DBG("QM30VT2: X-Axis Peak Velocity=%.3f mm/sec",
-		sensor_value_to_double(&meas.x_vel_peak_mm));
-	LOG_DBG("QM30VT2: X-Axis Peak Velocity Component Frequency=%.1f Hz",
-		sensor_value_to_double(&meas.x_vel_peak_freq));
-	LOG_DBG("QM30VT2: X-Axis RMS Acceleration=%.3f G", sensor_value_to_double(&meas.x_acc_rms));
-	LOG_DBG("QM30VT2: X-Axis Peak Acceleration=%.3f G",
-		sensor_value_to_double(&meas.x_acc_peak));
-	LOG_DBG("QM30VT2: X-Axis Crest Factor=%.3f", sensor_value_to_double(&meas.x_acc_cf));
-	LOG_DBG("QM30VT2: X-Axis Kurtosis=%.3f", sensor_value_to_double(&meas.x_acc_kurt));
-	LOG_DBG("QM30VT2: X-Axis High-Frequency RMS Acceleration=%.3f G",
-		sensor_value_to_double(&meas.x_acc_rms_hf));
+	qm30vt2_log_measurements(&meas);
 
 	/* Send sensor data to Golioth */
-	/* clang-format off */
-	snprintk(json_buf, sizeof(json_buf), JSON_FMT,
-		/* Temperature */
-		sensor_value_to_double(&meas.temp_c),
-		sensor_value_to_double(&meas.temp_f),
+	if (golioth_client_is_connected(client)) {
+		/* clang-format off */
+		snprintk(json_buf, sizeof(json_buf), JSON_FMT,
+			/* Temperature */
+			sensor_value_to_double(&meas.temp_c),
+			sensor_value_to_double(&meas.temp_f),
 
-		/* X-Axis Vibration */
-		sensor_value_to_double(&meas.x_acc_cf),
-		sensor_value_to_double(&meas.x_acc_rms_hf),
-		sensor_value_to_double(&meas.x_acc_kurt),
-		sensor_value_to_double(&meas.x_acc_peak),
-		sensor_value_to_double(&meas.x_acc_rms),
-		sensor_value_to_double(&meas.x_vel_peak_freq),
-		sensor_value_to_double(&meas.x_vel_peak_in),
-		sensor_value_to_double(&meas.x_vel_peak_mm),
-		sensor_value_to_double(&meas.x_vel_rms_in),
-		sensor_value_to_double(&meas.x_vel_rms_mm),
+			/* X-Axis Vibration */
+			sensor_value_to_double(&meas.x_acc_cf),
+			sensor_value_to_double(&meas.x_acc_rms_hf),
+			sensor_value_to_double(&meas.x_acc_kurt),
+			sensor_value_to_double(&meas.x_acc_peak),
+			sensor_value_to_double(&meas.x_acc_rms),
+			sensor_value_to_double(&meas.x_vel_peak_freq),
+			sensor_value_to_double(&meas.x_vel_peak_in),
+			sensor_value_to_double(&meas.x_vel_peak_mm),
+			sensor_value_to_double(&meas.x_vel_rms_in),
+			sensor_value_to_double(&meas.x_vel_rms_mm),
 
-		/* Z-Axis Vibration */
-		sensor_value_to_double(&meas.z_acc_cf),
-		sensor_value_to_double(&meas.z_acc_rms_hf),
-		sensor_value_to_double(&meas.z_acc_kurt),
-		sensor_value_to_double(&meas.z_acc_peak),
-		sensor_value_to_double(&meas.z_acc_rms),
-		sensor_value_to_double(&meas.z_vel_peak_freq),
-		sensor_value_to_double(&meas.z_vel_peak_in),
-		sensor_value_to_double(&meas.z_vel_peak_mm),
-		sensor_value_to_double(&meas.z_vel_rms_in),
-		sensor_value_to_double(&meas.z_vel_rms_mm)
-	);
-	/* clang-format on */
+			/* Z-Axis Vibration */
+			sensor_value_to_double(&meas.z_acc_cf),
+			sensor_value_to_double(&meas.z_acc_rms_hf),
+			sensor_value_to_double(&meas.z_acc_kurt),
+			sensor_value_to_double(&meas.z_acc_peak),
+			sensor_value_to_double(&meas.z_acc_rms),
+			sensor_value_to_double(&meas.z_vel_peak_freq),
+			sensor_value_to_double(&meas.z_vel_peak_in),
+			sensor_value_to_double(&meas.z_vel_peak_mm),
+			sensor_value_to_double(&meas.z_vel_rms_in),
+			sensor_value_to_double(&meas.z_vel_rms_mm)
+		);
+		/* clang-format on */
 
-	LOG_DBG("%s", json_buf);
+		/* LOG_DBG("%s", json_buf); */
 
-	err = golioth_stream_push_cb(client, "sensor", GOLIOTH_CONTENT_FORMAT_APP_JSON, json_buf,
-				     strlen(json_buf), async_error_handler, NULL);
-	if (err) {
-		LOG_ERR("Failed to send sensor data to Golioth: %d", err);
+		err = golioth_stream_set_async(client,
+					"sensor",
+					GOLIOTH_CONTENT_TYPE_JSON,
+					json_buf,
+					strlen(json_buf),
+					async_error_handler,
+					NULL);
+		if (err) {
+			LOG_ERR("Failed to send sensor data to Golioth: %d", err);
+		}
+	} else {
+		LOG_WRN("Device is not connected to Golioth, unable to send sensor data");
 	}
 
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
 		/* Update slide values on Ostentus
 		 *  -values should be sent as strings
-		 *  -use the enum from app_work.h for slide key values
+		 *  -use the enum from app_sensors.h for slide key values
 		 */
 		snprintk(json_buf, sizeof(json_buf), "%.2f F",
 			 sensor_value_to_double(&meas.temp_f));
@@ -318,16 +307,7 @@ void app_work_sensor_read(void)
 	));
 }
 
-void app_work_init(struct golioth_client *work_client)
+void app_sensors_set_client(struct golioth_client *sensors_client)
 {
-	client = work_client;
-
-#if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, rs485_8_click_en_gpios)
-	/* Set the RS485 8 Click board EN signal */
-	gpio_pin_configure_dt(&rs485_en, GPIO_OUTPUT_ACTIVE);
-#endif
-
-	if (init_modbus_client()) {
-		LOG_ERR("Modbus RTU client initialization failed");
-	}
+	client = sensors_client;
 }

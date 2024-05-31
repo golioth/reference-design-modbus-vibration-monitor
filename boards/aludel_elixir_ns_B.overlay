@@ -18,7 +18,3 @@
 		status = "okay";
 	};
 };
-
-&qwiic_i2c {
-	status = "okay";
-};

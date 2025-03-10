@@ -27,6 +27,7 @@ images](https://github.com/golioth/reference-design-modbus-vibration-monitor/rel
 ### Additional Sensors/Components
 
 - Texas Instruments THVD1426 RS-485 transceiver
+- Banner QM30VT2 Banner Modbus temperature & vibration sensor
 
 ## Golioth Features
 
@@ -123,7 +124,8 @@ the LightDB Stream service:
 {
   "sensor": {
     "temperature": {
-      "celcius": 27.08
+      "celcius": 21.96,
+      "farenheight": 71.53
     },
     "x_axis": {
       "acceleration": {
@@ -294,7 +296,9 @@ folder. The `build` and `deps` directories being one level higher
 prevents the repo from cataloging all of the changes to the dependencies
 and the build (so no `.gitignore` is needed).
 
-### Use `west` to initialize the workspace and install dependencies
+Prior to building, update `VERSION` file to reflect the firmware version
+number you want to assign to this build. Then run the following commands
+to build and program the firmware onto the device.
 
 > [!WARNING]
 > You must perform a pristine build (use `-p` or remove the `build`

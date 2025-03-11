@@ -10,6 +10,19 @@
 	};
 };
 
+&i2c2 {
+    status = "okay";
+
+    /* Needed for I2C writes used by libostentus */
+    zephyr,concat-buf-size = <48>;
+
+    ostentus@12 {
+        status = "okay";
+        compatible = "golioth,ostentus";
+        reg = <0x12>;
+    };
+};
+
 &mikrobus_serial {
 	status = "okay";
 
@@ -17,8 +30,4 @@
 		compatible = "zephyr,modbus-serial";
 		status = "okay";
 	};
-};
-
-&qwiic_i2c {
-	status = "okay";
 };

@@ -6,8 +6,19 @@
 
 / {
 	zephyr,user {
-		rs485-8-click-en-gpios = <&mikrobus_header_1 1 GPIO_ACTIVE_HIGH>;
+		rs485-8-click-en-gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
 	};
+};
+
+&i2c2 {
+    /* Needed for I2C writes used by libostentus */
+    zephyr,concat-buf-size = <48>;
+
+    ostentus@12 {
+        status = "okay";
+        compatible = "golioth,ostentus";
+        reg = <0x12>;
+    };
 };
 
 /* On this board, mikrobus_spi == spi2 & mikrobus_serial == uart2, and a

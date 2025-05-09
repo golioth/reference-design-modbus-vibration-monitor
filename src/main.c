@@ -19,7 +19,7 @@ LOG_MODULE_REGISTER(golioth_modbus_vibration_monitor, LOG_LEVEL_DBG);
 #include <samples/common/sample_credentials.h>
 #include <zephyr/kernel.h>
 
-#ifdef CONFIG_SOC_NRF9160
+#ifdef CONFIG_SOC_SERIES_NRF91X
 #include <modem/lte_lc.h>
 #endif
 #ifdef CONFIG_LIB_OSTENTUS
@@ -28,7 +28,7 @@ LOG_MODULE_REGISTER(golioth_modbus_vibration_monitor, LOG_LEVEL_DBG);
 static const struct device *o_dev = DEVICE_DT_GET_ANY(golioth_ostentus);
 #endif
 #ifdef CONFIG_ALUDEL_BATTERY_MONITOR
-#include "battery_monitor/battery.h"
+#include <battery_monitor.h>
 #endif
 
 #include <zephyr/drivers/gpio.h>
@@ -39,7 +39,7 @@ static const struct device *o_dev = DEVICE_DT_GET_ANY(golioth_ostentus);
 
 /* Current firmware version; update in VERSION */
 static const char *_current_version =
-    STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
+	STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
 
 static struct golioth_client *client;
 K_SEM_DEFINE(connected, 0, 1);
@@ -60,8 +60,7 @@ void wake_system_thread(void)
 	k_wakeup(_system_thread);
 }
 
-static void on_client_event(struct golioth_client *client,
-			    enum golioth_client_event event,
+static void on_client_event(struct golioth_client *client, enum golioth_client_event event,
 			    void *arg)
 {
 	bool is_connected = (event == GOLIOTH_CLIENT_EVENT_CONNECTED);
@@ -87,7 +86,6 @@ static void start_golioth_client(void)
 	/* Initialize DFU components */
 	golioth_fw_update_init(client, _current_version);
 
-
 	/*** Call Golioth APIs for other services in dedicated app files ***/
 
 	/* Observe State service data */
@@ -103,7 +101,7 @@ static void start_golioth_client(void)
 	app_rpc_register(client);
 }
 
-#ifdef CONFIG_SOC_NRF9160
+#ifdef CONFIG_SOC_SERIES_NRF91X
 
 static void lte_handler(const struct lte_lc_evt *const evt)
 {
@@ -123,7 +121,7 @@ static void lte_handler(const struct lte_lc_evt *const evt)
 	}
 }
 
-#endif /* CONFIG_SOC_NRF9160 */
+#endif /* CONFIG_SOC_SERIES_NRF91X */
 
 #ifdef CONFIG_MODEM_INFO
 static void log_modem_firmware_version(void)
@@ -156,10 +154,12 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t
 void golioth_connection_led_set(uint8_t state)
 {
 	uint8_t pin_state = state ? 1 : 0;
-#if DT_NODE_EXISTS(DT_ALIAS(golioth_led))
+	ARG_UNUSED(pin_state); /* silence warning if no LED/Ostentus present */
+
 	/* Turn on Golioth logo LED once connected */
-	gpio_pin_set_dt(&golioth_led, pin_state);
-#endif /* #if DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
+	IF_ENABLED(DT_NODE_EXISTS(DT_ALIAS(golioth_led)),
+		(gpio_pin_set_dt(&golioth_led, pin_state);));
+
 	/* Change the state of the Golioth LED on Ostentus */
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (ostentus_led_golioth_set(o_dev, pin_state);));
 }
@@ -209,7 +209,7 @@ int main(void)
 	}
 #endif /* #if DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 
-#ifdef CONFIG_SOC_NRF9160
+#ifdef CONFIG_SOC_SERIES_NRF91X
 	/* Start LTE asynchronously if the nRF9160 is used.
 	 * Golioth Client will start automatically when LTE connects
 	 */
@@ -230,7 +230,7 @@ int main(void)
 
 	/* Block until connected to Golioth */
 	k_sem_take(&connected, K_FOREVER);
-#endif /* CONFIG_SOC_NRF9160 */
+#endif /* CONFIG_SOC_SERIES_NRF91X */
 
 	/* Set up user button */
 	err = gpio_pin_configure_dt(&user_btn, GPIO_INPUT);

@@ -103,21 +103,18 @@ the LightDB Stream service:
     (in/sec)
   - `sensor/x_axis/velocity/rms/mm_per_sec`: X-Axis RMS Velocity
     (mm/sec)
-  - `sensor/x_axis/acceleration/crest_factor`: X-Axis Crest Factor
-  - `sensor/x_axis/acceleration/high_frequency_rms`: X-Axis
-    High-Frequency RMS Acceleration (G)
-  - `sensor/z_axis//acceleration/kurtosis`: X-Axis Kurtosis
-  - `sensor/z_axis//acceleration/peak`: Z-Axis Peak Acceleration (G)
-  - `sensor/z_axis//acceleration/rms`: Z-Axis RMS Acceleration (G)
-  - `sensor/z_axis//velocity/peak/frequency`: Z-Axis Peak Velocity
+  - `sensor/z_axis/acceleration/kurtosis`: X-Axis Kurtosis
+  - `sensor/z_axis/acceleration/peak`: Z-Axis Peak Acceleration (G)
+  - `sensor/z_axis/acceleration/rms`: Z-Axis RMS Acceleration (G)
+  - `sensor/z_axis/velocity/peak/frequency`: Z-Axis Peak Velocity
     Component Frequency (Hz)
-  - `sensor/z_axis//velocity/peak/in_per_sec`: Z-Axis Peak Velocity
+  - `sensor/z_axis/velocity/peak/in_per_sec`: Z-Axis Peak Velocity
     (in/sec)
-  - `sensor/z_axis//velocity/peak/mm_per_sec`: Z-Axis Peak Velocity
+  - `sensor/z_axis/velocity/peak/mm_per_sec`: Z-Axis Peak Velocity
     (mm/sec)
-  - `sensor/z_axis//velocity/rms/in_per_sec`: Z-Axis RMS Velocity
+  - `sensor/z_axis/velocity/rms/in_per_sec`: Z-Axis RMS Velocity
     (in/sec)
-  - `sensor/z_axis//velocity/rms/mm_per_sec`: Z-Axis RMS Velocity
+  - `sensor/z_axis/velocity/rms/mm_per_sec`: Z-Axis RMS Velocity
     (mm/sec)
 
 ``` json

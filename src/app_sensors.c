@@ -24,7 +24,7 @@ static const struct device *o_dev = DEVICE_DT_GET_ANY(golioth_ostentus);
 #endif
 
 #ifdef CONFIG_ALUDEL_BATTERY_MONITOR
-#include "battery_monitor/battery.h"
+#include <battery_monitor.h>
 #endif
 
 #define ZEPHYR_USER_NODE DT_PATH(zephyr_user)

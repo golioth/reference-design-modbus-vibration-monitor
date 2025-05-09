@@ -17,5 +17,3 @@ target_sources(app PRIVATE src/app_settings.c)
 target_sources(app PRIVATE src/app_state.c)
 target_sources(app PRIVATE src/app_sensors.c)
 target_sources(app PRIVATE src/qm30vt2.c)
-
-add_subdirectory_ifdef(CONFIG_ALUDEL_BATTERY_MONITOR src/battery_monitor)

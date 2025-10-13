@@ -22,7 +22,6 @@ images](https://github.com/golioth/reference-design-modbus-vibration-monitor/rel
 
 - Nordic nRF9160-DK
 - Golioth Aludel Elixir
-- Golioth Aludel Mini
 
 ### Additional Sensors/Components
 

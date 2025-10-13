@@ -148,9 +148,14 @@ void app_sensors_read_and_stream(void)
 	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
 		read_and_report_battery(client);
 		IF_ENABLED(CONFIG_LIB_OSTENTUS, (
-			ostentus_slide_set(o_dev, BATTERY_V, get_batt_v_str(), strlen(get_batt_v_str()));
-			ostentus_slide_set(o_dev, BATTERY_LVL, get_batt_lvl_str(),
-					     strlen(get_batt_lvl_str()));
+			ostentus_slide_set(o_dev,
+					   BATTERY_V,
+					   get_batt_v_str(),
+					   strlen(get_batt_v_str()));
+			ostentus_slide_set(o_dev,
+					   BATTERY_PCT,
+					   get_batt_pct_str(),
+					   strlen(get_batt_pct_str()));
 		));
 	));
 
